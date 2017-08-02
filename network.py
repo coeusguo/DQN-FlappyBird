@@ -16,6 +16,7 @@ def decorated_layer(layer):
 		output = layer(self, ipt, *args, **kwargs)
 		self.layers[name] = output
 
+		print 'output shape', output.get_shape().as_list()
 		return self.feed(output)
 
 	return wrapper
@@ -103,7 +104,7 @@ class Network(object):
 		shape = input_data.get_shape().as_list()
 		
 		size = 1
-
+		print 'shape', shape
 		for i in shape[1:]:
 			size *= i
 

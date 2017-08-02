@@ -14,12 +14,12 @@ BATCH_SIZE = 30
 GAMMA = 0.99
 EBSILON = 0.02
 UPDATE_STEP = 100
-FRAME_PER_ACTION = 4
+FRAME_PER_ACTION = 1
 HOLD_ACTION = False
 REPLAY_MEMORY_SIZE = 50000
 EXPLORE_STEPS = 200000
 LEARNING_RATE = 1e-4
-CKPT_PATH = os.path.join(os.getcwd(), 'model', 'dqn')
+CKPT_PATH = os.path.join(os.getcwd(), 'model', 'network-dqn')
 SAVE_STEP = 10000
 
 class DQN(Network):
@@ -54,39 +54,47 @@ class DQN(Network):
 
 	def setup(self):
 		#train network
+		print 'Training network'
 		(self.feed('train_input')
 		.conv(8, 32, 4, 4, name = 'conv_train_1', appendList = self.__train_variables).max_pooling(name = 'max_pool_train_1')
-		.conv(4, 64, 2, 2, name = 'conv_train_2', appendList = self.__train_variables).max_pooling(name = 'max_pool_train_2')
-		.conv(3, 64, 1, 1, name = 'conv_train_3', appendList = self.__train_variables).max_pooling(name = 'max_pool_train_3')
+		.conv(4, 64, 2, 2, name = 'conv_train_2', appendList = self.__train_variables)
+		.conv(3, 64, 1, 1, name = 'conv_train_3', appendList = self.__train_variables)
 		.fc(512, name = 'fc_train_1', appendList = self.__train_variables)
 		.fc(self.__num_action, name = 'QValues', relu = False, appendList = self.__train_variables))
 
 
 		#target network
+		print 'Target network'
 		(self.feed('target_input')
 		.conv(8, 32, 4, 4, name = 'conv_target_1', appendList = self.__target_variables).max_pooling(name = 'max_pool_target_1')
-		.conv(4, 64, 2, 2, name = 'conv_target_2', appendList = self.__target_variables).max_pooling(name = 'max_pool_target_2')
-		.conv(3, 64, 1, 1, name = 'conv_target_3', appendList = self.__target_variables).max_pooling(name = 'max_pool_target_3')
+		.conv(4, 64, 2, 2, name = 'conv_target_2', appendList = self.__target_variables)
+		.conv(3, 64, 1, 1, name = 'conv_target_3', appendList = self.__target_variables)
 		.fc(512, name = 'fc_target_1', appendList = self.__target_variables)
 		.fc(self.__num_action, name = 'QValues_target', relu = False, appendList = self.__target_variables))
 
 		
-		self.__saver = tf.train.Saver()
-		ckpt = tf.train.get_checkpoint_state('model')
-		if ckpt and ckpt.model_checkpoint_path:
-				self.__saver.restore(self.__session, ckpt.model_checkpoint_path)
-				print 'Load trained model %s' %ckpt.model_checkpoint_path
-		else:
-				print 'No pretrained model found' 
 
 		#loss function
-		self.layers['action_input'] = tf.placeholder(tf.float32, shape = [None, num_action], name = 'action_input')
+		print 'Loss function'
+		self.layers['action_input'] = tf.placeholder(tf.float32, shape = [None, self.__num_action], name = 'action_input')
 		qvalues = tf.reduce_sum(tf.multiply(self.layers['QValues'], self.layers['action_input'] ),  reduction_indices = 1)
 		self.layers['y'] = tf.placeholder(tf.float32, shape = [None], name = 'target_values')
 		self.layers['loss_function'] = tf.reduce_mean(tf.square(self.layers['y'] - qvalues))
 		self.__optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.layers['loss_function'])
 
 		self.__session.run(tf.global_variables_initializer())
+		self.__saver = tf.train.Saver()
+
+		ckpt = tf.train.get_checkpoint_state('model')
+
+		if ckpt and ckpt.model_checkpoint_path:
+				self.__saver.restore(self.__session, ckpt.model_checkpoint_path)
+				print 'Load trained model %s' %ckpt.model_checkpoint_path
+		else:
+				print 'No pretrained model found' 
+
+		
+
 
 	def copy_network(self):
 		for i in range(len(self.__train_variables)):
@@ -114,7 +122,6 @@ class DQN(Network):
 			action =  self.__last_action
 		else:
 			action[0] = 1
-		
 		return action
 
 	def set_initial_state(self, observation):
@@ -132,7 +139,7 @@ class DQN(Network):
 		experience = (self.__current_state, action, newState, reward, terminate)
 		self.__replay_memory.append(experience)
 
-		self.__curren_tstate = newState
+		self.__current_state = newState
 
 		if self.__time_step > BATCH_SIZE:
 			self.train_model()
@@ -170,6 +177,7 @@ class DQN(Network):
 				y.append(reward[i])
 			else:
 				y.append(reward[i] + GAMMA * np.max(q_value))
+
 		self.__optimizer.run(feed_dict = {self.layers['train_input']:state, self.layers['y']:y, self.layers['action_input']:action})
 
 if __name__ == '__main__':
