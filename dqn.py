@@ -18,7 +18,7 @@ FRAME_PER_ACTION = 1
 HOLD_ACTION = False
 REPLAY_MEMORY_SIZE = 50000
 EXPLORE_STEPS = 200000
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-6
 CKPT_PATH = os.path.join(os.getcwd(), 'model', 'network-dqn')
 SAVE_STEP = 10000
 
