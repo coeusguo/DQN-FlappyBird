@@ -1,4 +1,4 @@
 # DQN-FlappyBird
 
-###Tested with
-⋅⋅*python 2.7
+### Tested with
+⋅⋅* python 2.7
