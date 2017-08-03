@@ -1,5 +1,5 @@
 # DQN-FlappyBird
-A toy example of deep reinforcement learning based on [DQN Nature](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf)
+A toy implementation of deep reinforcement learning based on [DQN Nature](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf)
 
 
 ## Tested with
