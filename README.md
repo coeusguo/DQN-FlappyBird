@@ -1,5 +1,5 @@
 # DQN-FlappyBird
-A tensorflow implementation using chained methods
+A chained method implementation using tensorflow
 
 ## Tested with
 - python 2.7
@@ -23,4 +23,6 @@ pip install -r requirements.txt
 python dqn.py
 ```
 
-- To train the network from scratch, simply delete all the files in the 'model' folder
+## Train the network from scratch
+- Delete all the files in the 'model' folder
+- In dqn.py, change EBSILON to 0.2
