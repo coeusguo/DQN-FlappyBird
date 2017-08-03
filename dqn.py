@@ -17,7 +17,7 @@ UPDATE_STEP = 100
 FRAME_PER_ACTION = 1
 HOLD_ACTION = False
 REPLAY_MEMORY_SIZE = 50000
-EXPLORE_STEPS = 63000
+EXPLORE_STEPS = 200000
 LEARNING_RATE = 1e-6
 OBSERVE_STEP = 100
 CKPT_PATH = os.path.join(os.getcwd(), 'model', 'network-dqn')
@@ -93,12 +93,11 @@ class DQN(Network):
 		else:
 				print 'No pretrained model found' 
 
-		
+		self.__assign = [self.__target_variables[i].assign(self.__train_variables[i]) for i in range(len(self.__train_variables))]
 
 
 	def copy_network(self):
-		for i in range(len(self.__train_variables)):
-			self.__session.run(self.__target_variables[i].assign(self.__train_variables[i]))
+		self.__session.run(self.__assign)
 
 	def preprocessing(self, img):
 		img = cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), IMAGE_SIZE)
@@ -115,9 +114,6 @@ class DQN(Network):
 			else:
 				qvalue = self.layers['QValues'].eval(feed_dict = {self.layers['train_input']:[self.__current_state]})[0]
 				index = np.argmax(qvalue)
-				if self.__time_step % 100 == 0:
-					print 'qvalue:', qvalue
-
 			action[index] = 1
 
 		elif HOLD_ACTION:
