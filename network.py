@@ -56,12 +56,12 @@ class Network(object):
 			
 		return self
 
-	def weight_variable(self, shape):
-		init = tf.truncated_normal(shape, stddev = 0.1)
+	def weight_variable(self, shape, stddev = 0.01):
+		init = tf.truncated_normal(shape, stddev = stddev)
 		return tf.Variable(init)
 
-	def bias_variable(self, shape):
-		init = tf.constant(0.1, shape = shape)
+	def bias_variable(self, shape, value = 0.01):
+		init = tf.constant(value, shape = shape)
 		return tf.Variable(init)
 
 	def __append(self, appendList, variables):
@@ -74,16 +74,16 @@ class Network(object):
 
 
 	@decorated_layer
-	def conv(self,input_data, k_w, k_d, s_w, s_h, name, relu = True, padding = 'SAME', appendList = None):
+	def conv(self,input_data, k_w, k_d, s_w, s_h, name, relu = True, padding = 'SAME', value = 0.01, appendList = None):
 		
 		depth = input_data.get_shape().as_list()[-1]
 		#print('input data depth of ' + name + ':', depth)
 		#kernel
-		kernel = self.weight_variable([k_w, k_w, depth, k_d])
+		kernel = self.weight_variable([k_w, k_w, depth, k_d], stddev = value)
 
 		conv2d = tf.nn.conv2d(input_data, kernel, strides = [1, s_h, s_w, 1], padding = padding)
 
-		bias = self.bias_variable([k_d])
+		bias = self.bias_variable([k_d], value = value)
 
 		self.__append(appendList, [kernel, bias])
 
@@ -98,7 +98,7 @@ class Network(object):
 
 
 	@decorated_layer
-	def fc(self, input_data, output_dim, name, relu = True, appendList = None):
+	def fc(self, input_data, output_dim, name, relu = True, value = 0.01, appendList = None):
 		assert not isinstance(input_data, list)
 
 		shape = input_data.get_shape().as_list()
@@ -112,8 +112,8 @@ class Network(object):
 			input_data = tf.reshape(input_data, [-1, size])
 			#print(input_data.shape)
 		
-		w = self.weight_variable([size, output_dim])
-		b = self.bias_variable([output_dim])
+		w = self.weight_variable([size, output_dim], stddev = value)
+		b = self.bias_variable([output_dim], value = value)
 
 		self.__append(appendList, [w, b])
 
