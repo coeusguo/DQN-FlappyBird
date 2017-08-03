@@ -10,15 +10,16 @@ import random
 import os
 
 IMAGE_SIZE = (80,80)
-BATCH_SIZE = 30
+BATCH_SIZE = 32
 GAMMA = 0.99
-EBSILON = 0.02
+EBSILON = 0.0
 UPDATE_STEP = 100
 FRAME_PER_ACTION = 1
 HOLD_ACTION = False
 REPLAY_MEMORY_SIZE = 50000
-EXPLORE_STEPS = 200000
+EXPLORE_STEPS = 63000
 LEARNING_RATE = 1e-6
+OBSERVE_STEP = 100
 CKPT_PATH = os.path.join(os.getcwd(), 'model', 'network-dqn')
 SAVE_STEP = 10000
 
@@ -49,7 +50,6 @@ class DQN(Network):
 		self.__last_action = [0 for _ in range(num_action)]
 		self.__time_step = 0
 		self.__ebsilon = EBSILON
-		
 		self.setup()
 
 	def setup(self):
@@ -110,11 +110,13 @@ class DQN(Network):
 		action = np.zeros(self.__num_action)
 
 		if self.__time_step % FRAME_PER_ACTION == 0:
-			if random.random() < self.__ebsilon:
-				index = random.randint(0, self.__num_action - 1)
+			if random.random() <= self.__ebsilon:
+				index = random.randrange(self.__num_action)
 			else:
 				qvalue = self.layers['QValues'].eval(feed_dict = {self.layers['train_input']:[self.__current_state]})[0]
 				index = np.argmax(qvalue)
+				if self.__time_step % 100 == 0:
+					print 'qvalue:', qvalue
 
 			action[index] = 1
 
@@ -122,6 +124,7 @@ class DQN(Network):
 			action =  self.__last_action
 		else:
 			action[0] = 1
+
 		return action
 
 	def set_initial_state(self, observation):
@@ -141,7 +144,7 @@ class DQN(Network):
 
 		self.__current_state = newState
 
-		if self.__time_step > BATCH_SIZE:
+		if self.__time_step > OBSERVE_STEP:
 			self.train_model()
 
 		#reduce the explore rate
@@ -172,6 +175,7 @@ class DQN(Network):
 
 		new_q = self.layers['QValues_target'].eval(feed_dict = {self.layers['target_input']:newState})
 		y = []
+
 		for i, q_value in enumerate(new_q):
 			if terminate[i] == True:
 				y.append(reward[i])
