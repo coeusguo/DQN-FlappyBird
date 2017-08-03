@@ -3,6 +3,7 @@ A toy implementation of deep reinforcement learning based on [DQN Nature](https:
 
 
 ## Tested with
+- Ubuntu 16.04
 - python 2.7
 - tensorflow
 - pygame
